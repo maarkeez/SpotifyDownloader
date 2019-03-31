@@ -3,6 +3,7 @@ package dmd.downloader.youtube;
 import com.wrapper.spotify.exceptions.SpotifyWebApiException;
 import dmd.downloader.Application;
 import dmd.downloader.connector.CommandService;
+import dmd.downloader.spotify.SpotifyProperties;
 import dmd.downloader.spotify.SpotifyService;
 import dmd.downloader.youtube.api.Id;
 import dmd.downloader.youtube.api.Item;
@@ -26,6 +27,9 @@ import java.util.function.Predicate;
 public class YoutubeServiceTest {
 
     @Autowired
+    private SpotifyProperties spotifyProperties;
+
+    @Autowired
     private SpotifyService spotifyService;
 
     @Autowired
@@ -36,14 +40,15 @@ public class YoutubeServiceTest {
 
     @Test
     public void test_downloadSpotifyPlaylistFromYoutube() throws IOException, SpotifyWebApiException {
-       List<String> songs = spotifyService.searchPlayList("09iRPPYjRexjqak0urh3M0");
-       songs.forEach(song -> searchVideo(song));
+       List<String> songs = spotifyService.searchPlayList(spotifyProperties.getPlayListId());
+       songs.forEach(song -> downloadSongAsMp3FromYoutube(song));
     }
 
-    void searchVideo(String videoSearchStr)  {
+    void downloadSongAsMp3FromYoutube(String videoSearchStr)  {
+        log.info("Starting download for: {}", videoSearchStr);
         try {
             VideoSearch videoSearch = youtubeService.searchVideo(videoSearchStr);
-            log.info("Search result: {}", videoSearch);
+            log.debug("Search result: {}", videoSearch);
             Optional<String> firstVideoId = videoSearch.getItems().stream()
                     .filter(hasVideoKind())
                     .map(Item::getId)
@@ -53,7 +58,7 @@ public class YoutubeServiceTest {
 
             if (firstVideoId.isPresent()) {
                 String videoId = firstVideoId.get();
-                log.info("Id found: {}", videoId);
+                log.debug("Id found: {}", videoId);
 
                 commandService.execute(
                         "youtube-dl.exe",
@@ -63,6 +68,7 @@ public class YoutubeServiceTest {
                         "\"mp3\"");
             }
 
+            log.info("Finished download of: {}", videoSearchStr);
         }catch (Exception e){
             log.error("Could not download song: {}. Error: ", videoSearchStr, e);
         }

@@ -33,7 +33,7 @@ public class SpotifyService {
         ClientCredentials clientCredentials = spotifyApi.clientCredentials().build().execute();
 
         spotifyApi.setAccessToken(clientCredentials.getAccessToken());
-        log.info("Your Spotify session expires in: {}", clientCredentials.getExpiresIn());
+        log.debug("Your Spotify session expires in: {}", clientCredentials.getExpiresIn());
 
         Playlist playlist = spotifyApi.getPlaylist(playListId).build().execute();
 

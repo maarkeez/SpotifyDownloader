@@ -27,3 +27,5 @@
 **/application.properties
 
 *.mp3
+
+.mvn
